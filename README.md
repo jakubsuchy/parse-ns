@@ -5,6 +5,7 @@ This is a fork of the original parser by josepfontana: https://github.com/josepf
 - [Jan 8 2024] Adds Python 3 support
 - [Jan 8 2024] Adds support for "add service" (in addition to existing "add serviceGroup")
 - [Jan 8 2024] Captures [other parameters], such as "-gslb NONE -maxClient 0 -maxReq 0..." in services and puts them (without parsing) into Other Params column
+- [Jan 8 2024] Adds basic support for unparseable lines
 
 
 # parse-ns
@@ -16,6 +17,11 @@ Parse Citrix Netscaler configuration and output 2 csv files:
 Usage:
 
   parse-ns.py conf1.txt conf2.txt ...
+
+Output:
+  date_GSLB.csv - File with GSLB configuration
+  date_LB.csv - File with LB configuration
+  date_UNPARSEABLE.csv - Any lines that were not identified
 
 # Understanding Netscaler config
 
