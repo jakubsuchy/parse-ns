@@ -281,7 +281,6 @@ with open(f_unparseable,'w') as f:
 
     # loop through the servers and get those that are LB'ed
     for l in unParseable.keys():
-        print("Unparseable "+unParseable[l])
         f.write(unParseable[l])
     f.close()
 
@@ -297,26 +296,20 @@ with open(f_lb,'w') as f:
     # loop through the servers and get those that are LB'ed
     for IP in servers.keys():
         [srvName, srvComment]=servers[IP]
-        print("Processing srvName "+srvName+" with IP "+IP)
         try:
             [serviceGroup, notUsed, port, CustomServerID, srvOther]=srvs[srvName]
-            print("Found serviceGroup "+serviceGroup+" for "+srvName)
         except(KeyError):
-            print("Key error")
             continue
         try:
             vServer=vServers[serviceGroup]
         except(KeyError):
-            print("Key error with vServers")
             vServer="None"
             continue
         try:
             [VIP, serviceType, VIPport, VIPcomment]=VIPs[vServer]
         except(KeyError):
-            print("Key error with VIPs")
             VIP=serviceType=VIPport=VIPcomment="None"
 
-        print("Writing row for srvName "+srvName)
 
         w.writerow( (VIP, serviceType, VIPport, VIPcomment, vServer, serviceGroup, port, CustomServerID, srvName, srvComment, IP, srvOther) )
 
