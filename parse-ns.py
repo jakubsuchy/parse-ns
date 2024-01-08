@@ -176,6 +176,9 @@ def lb_service_parse(l):
     serviceType=l.split()[4]
     port=l.split()[5]
     srvComment=l.partition('-comment ')[2].strip('"\n')
+    # First split into max of 6 arguments which will include comments and then strip the comment
+    srvOther=l.split(" ", 6)[6].partition("-comment ")[0]
+
 
     srvs[srvName]=[serviceName, serviceType, port, srvComment]
 
