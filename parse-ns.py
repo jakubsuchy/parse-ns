@@ -88,6 +88,7 @@ vServers=dict()		# vServer=vServers[serviceGroup/gslbService]
 VIPs=dict()		# [VIP, serviceType, port, VIPcomment]=VIPs[vServer]
 # gslb
 domains=dict()         # domain=domains[vserver]
+unParseable=dict() # Undefined lines
 
 
 #####
@@ -135,6 +136,14 @@ def readline(line):
         gslb_parse(line)
     elif (line.lower().startswith('bind gslb vserver')):
         gslb_vserver_parse(line)
+    else:
+        undefined_parse(line)
+
+"""
+Save lines that couldn't be identified
+"""
+def undefined_parse(l):
+    unParseable[l]=l
 
 
 """
@@ -265,6 +274,16 @@ f_basename=d.now().strftime('%Y-%m-%d_%H.%M')
 
 f_lb=f_basename+'_LB.csv'
 f_gslb=f_basename+'_GSLB.csv'
+f_unparseable=f_basename+'_UNPARSEABLE.csv'
+
+with open(f_unparseable,'w') as f:
+    print("Writing "+f_unparseable+"...")
+
+    # loop through the servers and get those that are LB'ed
+    for l in unParseable.keys():
+        print("Unparseable "+unParseable[l])
+        f.write(unParseable[l])
+    f.close()
 
 
 with open(f_lb,'w') as f:
