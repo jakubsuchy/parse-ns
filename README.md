@@ -9,19 +9,16 @@ This is a fork of the original parser by josepfontana: https://github.com/josepf
 
 
 # parse-ns
-Parse Citrix Netscaler configuration and output 2 csv files:
+Parse Citrix Netscaler configuration and output 3 csv files:
   - one for load balancing with the backend IP(s) and their correspondence with frontend IP (YYYY-MM-DD_HH.MM_LB.csv)
   - another for global server load balance with the domains and their corresponding IP(s) (YYYY-MM-DD_HH.MM_GSLB.csv)
+  - last one for any lines that couldn't be identified (YYYY-MM-DD_HH.MM_UNPARSEABLE.csv)
 
 
 Usage:
 
   parse-ns.py conf1.txt conf2.txt ...
 
-Output:
-  date_GSLB.csv - File with GSLB configuration
-  date_LB.csv - File with LB configuration
-  date_UNPARSEABLE.csv - Any lines that were not identified
 
 # Understanding Netscaler config
 
