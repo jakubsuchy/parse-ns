@@ -126,6 +126,10 @@ def readline(line):
 
     elif (line.lower().startswith('add lb vserver')):
         lb_vserver_parse(line)
+
+    elif (line.lower().startswith('add service')):
+        lb_service_parse(line)
+
     # here we start with gslb-specific stuff
     elif (line.lower().startswith('add gslb service')):
         gslb_parse(line)
@@ -162,6 +166,18 @@ def bind_servicegroup_parse(l):
     srvComment=l.partition('-CustomServerID ')[2].strip('"\n')
 
     srvs[srvName]=[serviceGroup, 'LB', port, srvComment]
+
+"""
+add service [serviceName] [serverName] [serviceType] [port] [other parameters] -comment ["some code or explanation"]
+"""
+def lb_service_parse(l):
+    serviceName=l.split()[2]
+    srvName=l.split()[3]
+    serviceType=l.split()[4]
+    port=l.split()[5]
+    srvComment=l.partition('-comment ')[2].strip('"\n')
+
+    srvs[srvName]=[serviceName, serviceType, port, srvComment]
 
 """
 bind lb vserver [vserver] [serviceGroup]
