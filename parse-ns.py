@@ -180,7 +180,7 @@ def lb_service_parse(l):
     srvOther=l.split(" ", 6)[6].partition("-comment ")[0]
 
 
-    srvs[srvName]=[serviceName, serviceType, port, srvComment]
+    srvs[srvName]=[serviceName, serviceType, port, srvComment, srvOther]
 
 """
 bind lb vserver [vserver] [serviceGroup]
@@ -212,8 +212,10 @@ def gslb_parse(l):
     serviceType=l.split()[5]
     port=l.split()[6]
     srvComment=l.partition('-comment ')[2].strip('"\n')
+    # First split into max of 6 arguments which will include comments and then strip the comment
+    srvOther=l.split(" ", 6)[6].partition("-comment ")[0]
 
-    srvs[srvName]=[gslbService, serviceType, port, srvComment]
+    srvs[srvName]=[gslbService, serviceType, port, srvComment, srvOther]
 
 
 """
@@ -272,13 +274,13 @@ with open(f_lb,'w') as f:
     w=csv.writer(f)
 
     # write the header row
-    w.writerow( ('VIP', 'serviceType', 'port', 'VIPcomment', 'vServer', 'serviceGroup', 'port', 'CustomServerID', 'srvName', 'srvComment', 'IP') )
+    w.writerow( ('VIP', 'serviceType', 'port', 'VIPcomment', 'vServer', 'serviceGroup', 'port', 'CustomServerID', 'srvName', 'srvComment', 'IP', 'other Params') )
 
     # loop through the servers and get those that are LB'ed
     for IP in servers.keys():
         [srvName, srvComment]=servers[IP]
         try:
-            [serviceGroup, notUsed, port, CustomServerID]=srvs[srvName]
+            [serviceGroup, notUsed, port, CustomServerID, srvOther]=srvs[srvName]
         except(KeyError):
             continue
         try:
@@ -290,7 +292,7 @@ with open(f_lb,'w') as f:
         except(KeyError):
             continue
 
-        w.writerow( (VIP, serviceType, VIPport, VIPcomment, vServer, serviceGroup, port, CustomServerID, srvName, srvComment, IP) )
+        w.writerow( (VIP, serviceType, VIPport, VIPcomment, vServer, serviceGroup, port, CustomServerID, srvName, srvComment, IP, srvOther) )
 
 
 with open(f_gslb,'w') as f:
@@ -299,13 +301,13 @@ with open(f_gslb,'w') as f:
     w=csv.writer(f)
 
     # write the header row
-    w.writerow( ('domain', 'vServer', 'gslbService', 'serviceType', 'port', 'srvcComment', 'srvComment', 'srvName', 'IP') )
+    w.writerow( ('domain', 'vServer', 'gslbService', 'serviceType', 'port', 'srvcComment', 'srvComment', 'srvName', 'IP', 'other Params') )
 
     # loop through the servers and get those that are GSLB'ed
     for IP in servers.keys():
         [srvName, srvComment]=servers[IP]
         try:
-            [gslbService, serviceType, port, srvcComment]=srvs[srvName]
+            [gslbService, serviceType, port, srvcComment, srvOther]=srvs[srvName]
         except(KeyError):
             continue
         try:
@@ -317,7 +319,7 @@ with open(f_gslb,'w') as f:
         except(KeyError):
             continue
 
-        w.writerow( (domain, vServer, gslbService, serviceType, port, srvcComment, srvComment, srvName, IP) )
+        w.writerow( (domain, vServer, gslbService, serviceType, port, srvcComment, srvComment, srvName, IP, srvOther) )
 
 print("...and done! Enjoy!")
 
