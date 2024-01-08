@@ -4,6 +4,7 @@ This is a fork of the original parser by josepfontana: https://github.com/josepf
 
 - [Jan 8 2024] Adds Python 3 support
 - [Jan 8 2024] Adds support for "add service" (in addition to existing "add serviceGroup")
+- [Jan 8 2024] Captures [other parameters], such as "-gslb NONE -maxClient 0 -maxReq 0..." in services and puts them (without parsing) into Other Params column
 
 
 # parse-ns
