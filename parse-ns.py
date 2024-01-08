@@ -1,4 +1,4 @@
-#!/usr/bin/python2.7
+#!/usr/bin/python3
 
 ################################################################################
 #
@@ -89,11 +89,12 @@ domains=dict()         # domain=domains[vserver]
 
 confFiles=sys.argv
 del confFiles[0]
+
 if (confFiles==[]):
     # no parameter where given
-    print "\n *** ERROR: no configuration files were provided in the command line\n"
-    print "Please use the following syntax:"
-    print " parse-ns.py conf1.txt conf2.txt ...\n"
+    print("\n *** ERROR: no configuration files were provided in the command line\n")
+    print("Please use the following syntax:")
+    print(" parse-ns.py conf1.txt conf2.txt ...\n")
     exit(1)
 
 
@@ -216,7 +217,7 @@ def gslb_vserver_parse(l):
 
 # go through each file provided in the command line
 for confFile in confFiles:
-    print "Reading "+confFile+"..."
+    print("Reading "+confFile+"...")
     # open file and read it line by line
     with open(confFile,'r') as f:
         for line in f:
@@ -239,7 +240,7 @@ f_gslb=f_basename+'_GSLB.csv'
 
 
 with open(f_lb,'w') as f:
-    print "Writing "+f_lb+"..."
+    print("Writing "+f_lb+"...")
     # create the csv writer
     w=csv.writer(f)
 
@@ -266,7 +267,7 @@ with open(f_lb,'w') as f:
 
 
 with open(f_gslb,'w') as f:
-    print "Writing "+f_gslb+"..."
+    print("Writing "+f_gslb+"...")
     # create the csv writer
     w=csv.writer(f)
 
@@ -291,4 +292,5 @@ with open(f_gslb,'w') as f:
 
         w.writerow( (domain, vServer, gslbService, serviceType, port, srvcComment, srvComment, srvName, IP) )
 
-print "...and done! Enjoy!"
+print("...and done! Enjoy!")
+
