@@ -16,3 +16,23 @@ Parse Citrix Netscaler configuration and output 2 csv files:
 Usage:
 
   parse-ns.py conf1.txt conf2.txt ...
+
+# Understanding Netscaler config
+
+The key to understanding Netscaler config is to realize most of the
+configuration is done the other way around than open source load balancers - it
+starts with creating backend (real) servers that are tied together and any
+frontend listening is done as a final step.
+
+For example:
+
+- When Netscaler does "add server" this means creating a backend server
+- When Netscaler does "bind serviceGroup" or "add service" it's creating a collection of backend servers into a single backend
+- Finally, when a vserver is added, that's creating a bind for a frontend to listen to on a specific IP
+
+
+## HAProxy relationship
+
+- "add server" -> server name in backend
+- "add service" or "bind serviceGroup" -> backend name
+- "add lb vserver" -> frontend name
