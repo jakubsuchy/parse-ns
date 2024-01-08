@@ -171,7 +171,7 @@ def bind_servicegroup_parse(l):
 add service [serviceName] [serverName] [serviceType] [port] [other parameters] -comment ["some code or explanation"]
 """
 def lb_service_parse(l):
-    serviceName=l.split()[2]
+    serviceGroup=l.split()[2]
     srvName=l.split()[3]
     serviceType=l.split()[4]
     port=l.split()[5]
@@ -179,8 +179,7 @@ def lb_service_parse(l):
     # First split into max of 6 arguments which will include comments and then strip the comment
     srvOther=l.split(" ", 6)[6].partition("-comment ")[0]
 
-
-    srvs[srvName]=[serviceName, serviceType, port, srvComment, srvOther]
+    srvs[srvName]=[serviceGroup, serviceType, port, srvComment, srvOther]
 
 """
 bind lb vserver [vserver] [serviceGroup]
@@ -279,18 +278,26 @@ with open(f_lb,'w') as f:
     # loop through the servers and get those that are LB'ed
     for IP in servers.keys():
         [srvName, srvComment]=servers[IP]
+        print("Processing srvName "+srvName+" with IP "+IP)
         try:
             [serviceGroup, notUsed, port, CustomServerID, srvOther]=srvs[srvName]
+            print("Found serviceGroup "+serviceGroup+" for "+srvName)
         except(KeyError):
+            print("Key error")
             continue
         try:
             vServer=vServers[serviceGroup]
         except(KeyError):
+            print("Key error with vServers")
+            vServer="None"
             continue
         try:
             [VIP, serviceType, VIPport, VIPcomment]=VIPs[vServer]
         except(KeyError):
-            continue
+            print("Key error with VIPs")
+            VIP=serviceType=VIPport=VIPcomment="None"
+
+        print("Writing row for srvName "+srvName)
 
         w.writerow( (VIP, serviceType, VIPport, VIPcomment, vServer, serviceGroup, port, CustomServerID, srvName, srvComment, IP, srvOther) )
 
