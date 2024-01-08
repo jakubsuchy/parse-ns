@@ -38,6 +38,12 @@
      add server [serverName] [IP] -comment ["some code or explanation"]
   2. name->serviceGroup (bind serviceGroup)
      bind serviceGroup [serviceGroup] [serverName] [port] -CustomServerID ["some code"]
+
+  OR # because not everything is in a group
+
+  2. name->service (add service)
+     add service [serviceName] [serverName] [serviceType] [port] [other parameters]
+
   3. serviceGroup->vserver (bind lb vserver)
      bind lb vserver [vserver] [serviceGroup]
   4. vserver->vip (add lb vserver)
@@ -109,6 +115,7 @@ readline(line)
 def readline(line):
     # the first one is for lb and gslb
     if (line.lower().startswith('add server')):
+        print("Parsing add server line"+line.lower())
         server_parse(line)
     # the three next are for lb
     elif (line.lower().startswith('bind servicegroup')): 
@@ -133,6 +140,7 @@ def server_parse(l):
     srvName=l.split()[2]
     IP=l.split()[3]
     srvComment=line.partition('-comment ')[2].strip('"\n')
+    print("Parsed server line with "+srvName+" and IP of "+IP);
     
     servers[IP]=[srvName, srvComment]
     
