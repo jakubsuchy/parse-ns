@@ -89,6 +89,7 @@ VIPs=dict()		# [VIP, serviceType, port, VIPcomment]=VIPs[vServer]
 # gslb
 domains=dict()         # domain=domains[vserver]
 unParseable=dict() # Undefined lines
+sslFiles=dict() # SSL File descriptions
 
 
 #####
@@ -116,7 +117,6 @@ readline(line)
 def readline(line):
     # the first one is for lb and gslb
     if (line.lower().startswith('add server')):
-        print("Parsing add server line"+line.lower())
         server_parse(line)
     # the three next are for lb
     elif (line.lower().startswith('bind servicegroup')): 
@@ -131,6 +131,8 @@ def readline(line):
     elif (line.lower().startswith('add service')):
         lb_service_parse(line)
 
+    elif (line.lower().startswith('add ssl certkey')):
+        ssl_service_certKey_parse(line)
     # here we start with gslb-specific stuff
     elif (line.lower().startswith('add gslb service')):
         gslb_parse(line)
@@ -147,13 +149,30 @@ def undefined_parse(l):
 
 
 """
+add ssl certKey (-cert [-password]) [-key | -fipsKey | -hsmKey ] [-inform ] [-expiryMonitor ( ENABLED | DISABLED ) [-notificationPeriod ]] [-bundle ( YES | NO )]
+add ssl certKey <certName> -cert <fileName>
+"""
+def ssl_service_certKey_parse(l):
+    certName=l.split()[3]
+    certFilePart=l.partition('-cert ')[2].strip('\n')
+    # It might happen that the text is "-cert file.cert -key key.pem" so we need to strip the key or anyhting beyond
+    certFile=certFilePart.partition(' -')[0]
+
+    keyFilePart=l.partition('-key ')[2].strip('\n')
+    keyFile=keyFilePart.partition(' -')[0]
+    print("Found SSL cert called "+certName+" with file "+certFile+" and key file"+keyFile)
+
+    sslFiles[certName]=[certFile, keyFile]
+    
+
+
+"""
 add server [serverName] [IP] -comment ["some code or explanation"]
 """
 def server_parse(l):
     srvName=l.split()[2]
     IP=l.split()[3]
-    srvComment=line.partition('-comment ')[2].strip('"\n')
-    print("Parsed server line with "+srvName+" and IP of "+IP);
+    srvComment=l.partition('-comment ')[2].strip('"\n')
     
     servers[IP]=[srvName, srvComment]
     
