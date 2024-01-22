@@ -71,6 +71,7 @@ Here we go from the server to the domainName that the Netscaler will solve:
 #####
 # imports
 import pprint
+import shlex
 
 import sys
 import os
@@ -175,8 +176,8 @@ def undefined_parse(l):
 link ssl certKey cs.companydomain.com_CKP GeoTrust_InterCA
 """
 def ssl_service_link_parse(l):
-    certName=l.split()[3]
-    linkName=l.split()[4]
+    certName=shlex.split(l)[3]
+    linkName=shlex.split(l)[4]
     if certName not in sslLinks:
         sslLinks[certName] = []
 
@@ -187,13 +188,12 @@ def ssl_service_link_parse(l):
 bind ssl vserver vserverName -certkeyName certName -SNICert
 """
 def ssl_service_bind_parse(l):
-    vServer = l.split()[3]
+    vServer = shlex.split(l)[3]
     certNamePart = l.partition('-certkeyName ')[2].strip('\n')
-    certName = certNamePart.partition(' -')[0]
-    if certName == "":
-        # This means it's a line that's not adding a cert to a vserver, make it unparseable
+    if (certNamePart == ""):
         undefined_parse(l)
         return
+    certName = shlex.split(certNamePart)[0]
     # We do this because there might be more than one linke with the same vServer so the certificates need to be an array
     if vServer not in sslBinds:
         sslBinds[vServer] = []
@@ -201,16 +201,17 @@ def ssl_service_bind_parse(l):
 
 """
 add ssl certKey (-cert [-password]) [-key | -fipsKey | -hsmKey ] [-inform ] [-expiryMonitor ( ENABLED | DISABLED ) [-notificationPeriod ]] [-bundle ( YES | NO )]
+add ssl certKey "DigiCert RSA CA" -cert "DigiCert TLS RSA SHA256 2020 CA1.pem" -expiryMonitor DISABLED -CertKeyDigest 
 add ssl certKey <certName> -cert <fileName>
 """
 def ssl_service_certKey_parse(l):
-    certName=l.split()[3]
+    certName=shlex.split(l)[3]
     certFilePart=l.partition('-cert ')[2].strip('\n')
     # It might happen that the text is "-cert file.cert -key key.pem" so we need to strip the key or anyhting beyond
-    certFile=certFilePart.partition(' -')[0]
+    certFile=certFilePart.partition(' -')[0].strip('"\n')
 
     keyFilePart=l.partition('-key ')[2].strip('\n')
-    keyFile=keyFilePart.partition(' -')[0]
+    keyFile=keyFilePart.partition(' -')[0].strip('"\n')
 
     sslFiles[certName]=[certFile, keyFile]
     
