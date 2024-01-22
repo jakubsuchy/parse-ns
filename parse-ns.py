@@ -221,8 +221,8 @@ def ssl_service_certKey_parse(l):
 add server [serverName] [IP] -comment ["some code or explanation"]
 """
 def server_parse(l):
-    srvName=l.split()[2]
-    IP=l.split()[3]
+    srvName=shlex.split(l)[2]
+    IP=shlex.split(l)[3]
     srvComment=l.partition('-comment ')[2].strip('"\n')
     
     servers[IP]=[srvName, srvComment]
@@ -239,9 +239,9 @@ def bind_servicegroup_parse(l):
         # nothing to do here
         return
     
-    serviceGroup=l.split()[2]
-    srvName=l.split()[3]
-    port=l.split()[4]
+    serviceGroup=shlex.split(l)[2]
+    srvName=shlex.split(l)[3]
+    port=shlex.split(l)[4]
     srvComment=l.partition('-CustomServerID ')[2].strip('"\n')
 
     srvs[srvName]=[serviceGroup, 'LB', port, srvComment, ""]
@@ -250,10 +250,10 @@ def bind_servicegroup_parse(l):
 add service [serviceName] [serverName] [serviceType] [port] [other parameters] -comment ["some code or explanation"]
 """
 def lb_service_parse(l):
-    serviceGroup=l.split()[2]
-    srvName=l.split()[3]
-    serviceType=l.split()[4]
-    port=l.split()[5]
+    serviceGroup=shlex.split(l)[2]
+    srvName=shlex.split(l)[3]
+    serviceType=shlex.split(l)[4]
+    port=shlex.split(l)[5]
     srvComment=l.partition('-comment ')[2].strip('"\n')
     # First split into max of 6 arguments which will include comments and then strip the comment
     srvOther=l.split(" ", 6)[6].partition("-comment ")[0].strip('"\n')
@@ -264,8 +264,8 @@ def lb_service_parse(l):
 bind lb vserver [vserver] [serviceGroup]
 """
 def bind_lb_parse(l):
-    vServer=l.split()[3]
-    serviceGroup=l.split()[4]
+    vServer=shlex.split(l)[3]
+    serviceGroup=shlex.split(l)[4]
 
     vServers[serviceGroup]=vServer
 
@@ -273,10 +273,10 @@ def bind_lb_parse(l):
 add lb vserver [vserver] [serviceType] [VIP] [port] [-other parameters] -comment ["some code"]
 """
 def lb_vserver_parse(l):
-    vServer=l.split()[3]
-    serviceType=l.split()[4]
-    VIP=l.split()[5]
-    port=l.split()[6]
+    vServer=shlex.split(l)[3]
+    serviceType=shlex.split(l)[4]
+    VIP=shlex.split(l)[5]
+    port=shlex.split(l)[6]
     VIPcomment=l.partition('-comment ')[2].strip('"\n')
 
     VIPs[vServer]=[VIP, serviceType, port, VIPcomment]
@@ -285,10 +285,10 @@ def lb_vserver_parse(l):
 add gslb service [gslbservice] [serverName] [serviceType] [port] [other parameters] -comment ["some code or explanation"]
 """
 def gslb_parse(l):
-    gslbService=l.split()[3]
-    srvName=l.split()[4]
-    serviceType=l.split()[5]
-    port=l.split()[6]
+    gslbService=shlex.split(l)[3]
+    srvName=shlex.split(l)[4]
+    serviceType=shlex.split(l)[5]
+    port=shlex.split(l)[6]
     srvComment=l.partition('-comment ')[2].strip('"\n')
     # First split into max of 6 arguments which will include comments and then strip the comment
     srvOther=l.split(" ", 6)[6].partition("-comment ")[0].strip('"\n')
@@ -302,13 +302,13 @@ bind gslb vserver [vserver] -domainName [domainName] [other parameters]
 """
 def gslb_vserver_parse(l):
     if '-serviceName' in l:
-        vServer=l.split()[3]
-        gslbService=l.split()[5]
+        vServer=shlex.split(l)[3]
+        gslbService=shlex.split(l)[5]
 
         vServers[gslbService]=vServer
     elif '-domainName' in l:
-        vserver=l.split()[3]
-        domain=l.split()[5]
+        vserver=shlex.split(l)[3]
+        domain=shlex.split(l)[5]
 
         # if there's already a domain for this vserver just add it
         try:
