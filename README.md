@@ -2,6 +2,7 @@
 
 This is a fork of the original parser by josepfontana: https://github.com/josepfontana/parse-ns
 
+- [Jan 22 2024] Adds initial SSL support - SSL certificate file names will now be printed on the line item in the LB.csv file. Supports recursive links (resolving 'ssl link')
 - [Jan 8 2024] Adds Python 3 support
 - [Jan 8 2024] Adds support for "add service" (in addition to existing "add serviceGroup")
 - [Jan 8 2024] Captures [other parameters], such as "-gslb NONE -maxClient 0 -maxReq 0..." in services and puts them (without parsing) into Other Params column

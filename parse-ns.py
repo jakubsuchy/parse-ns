@@ -70,6 +70,7 @@ Here we go from the server to the domainName that the Netscaler will solve:
 
 #####
 # imports
+import pprint
 
 import sys
 import os
@@ -90,6 +91,8 @@ VIPs=dict()		# [VIP, serviceType, port, VIPcomment]=VIPs[vServer]
 domains=dict()         # domain=domains[vserver]
 unParseable=dict() # Undefined lines
 sslFiles=dict() # SSL File descriptions
+sslLinks=dict() # SSL Links
+sslBinds=dict() # SSL Binds
 
 
 #####
@@ -109,6 +112,21 @@ if (confFiles==[]):
 ################################################################################
 # parsing functions
 ################################################################################
+
+def ssl_service_resolve_links(sslLink):
+    results = []
+    finalresults = []
+    if (sslLink not in sslLinks):
+        # This is end of recursion
+        return results
+
+    for item in sslLinks[sslLink]:
+        results.append(item)
+        tempresults = []
+        tempresults = ssl_service_resolve_links(item)
+        results = results + tempresults
+    return results
+
 
 """
 readline(line)
@@ -132,7 +150,12 @@ def readline(line):
         lb_service_parse(line)
 
     elif (line.lower().startswith('add ssl certkey')):
+        # This creates a key with a name, linking to a file
         ssl_service_certKey_parse(line)
+    elif (line.lower().startswith('link ssl certkey')):
+        ssl_service_link_parse(line)
+    elif (line.lower().startswith('bind ssl vserver')):
+        ssl_service_bind_parse(line)
     # here we start with gslb-specific stuff
     elif (line.lower().startswith('add gslb service')):
         gslb_parse(line)
@@ -149,6 +172,34 @@ def undefined_parse(l):
 
 
 """
+link ssl certKey cs.companydomain.com_CKP GeoTrust_InterCA
+"""
+def ssl_service_link_parse(l):
+    certName=l.split()[3]
+    linkName=l.split()[4]
+    if certName not in sslLinks:
+        sslLinks[certName] = []
+
+    sslLinks[certName].append(linkName)
+
+
+"""
+bind ssl vserver vserverName -certkeyName certName -SNICert
+"""
+def ssl_service_bind_parse(l):
+    vServer = l.split()[3]
+    certNamePart = l.partition('-certkeyName ')[2].strip('\n')
+    certName = certNamePart.partition(' -')[0]
+    if certName == "":
+        # This means it's a line that's not adding a cert to a vserver, make it unparseable
+        undefined_parse(l)
+        return
+    # We do this because there might be more than one linke with the same vServer so the certificates need to be an array
+    if vServer not in sslBinds:
+        sslBinds[vServer] = []
+    sslBinds[vServer].append(certName)
+
+"""
 add ssl certKey (-cert [-password]) [-key | -fipsKey | -hsmKey ] [-inform ] [-expiryMonitor ( ENABLED | DISABLED ) [-notificationPeriod ]] [-bundle ( YES | NO )]
 add ssl certKey <certName> -cert <fileName>
 """
@@ -160,7 +211,6 @@ def ssl_service_certKey_parse(l):
 
     keyFilePart=l.partition('-key ')[2].strip('\n')
     keyFile=keyFilePart.partition(' -')[0]
-    print("Found SSL cert called "+certName+" with file "+certFile+" and key file"+keyFile)
 
     sslFiles[certName]=[certFile, keyFile]
     
@@ -193,7 +243,7 @@ def bind_servicegroup_parse(l):
     port=l.split()[4]
     srvComment=l.partition('-CustomServerID ')[2].strip('"\n')
 
-    srvs[srvName]=[serviceGroup, 'LB', port, srvComment]
+    srvs[srvName]=[serviceGroup, 'LB', port, srvComment, ""]
 
 """
 add service [serviceName] [serverName] [serviceType] [port] [other parameters] -comment ["some code or explanation"]
@@ -205,7 +255,7 @@ def lb_service_parse(l):
     port=l.split()[5]
     srvComment=l.partition('-comment ')[2].strip('"\n')
     # First split into max of 6 arguments which will include comments and then strip the comment
-    srvOther=l.split(" ", 6)[6].partition("-comment ")[0]
+    srvOther=l.split(" ", 6)[6].partition("-comment ")[0].strip('"\n')
 
     srvs[srvName]=[serviceGroup, serviceType, port, srvComment, srvOther]
 
@@ -240,7 +290,7 @@ def gslb_parse(l):
     port=l.split()[6]
     srvComment=l.partition('-comment ')[2].strip('"\n')
     # First split into max of 6 arguments which will include comments and then strip the comment
-    srvOther=l.split(" ", 6)[6].partition("-comment ")[0]
+    srvOther=l.split(" ", 6)[6].partition("-comment ")[0].strip('"\n')
 
     srvs[srvName]=[gslbService, serviceType, port, srvComment, srvOther]
 
@@ -310,7 +360,7 @@ with open(f_lb,'w') as f:
     w=csv.writer(f)
 
     # write the header row
-    w.writerow( ('VIP', 'serviceType', 'port', 'VIPcomment', 'vServer', 'serviceGroup', 'port', 'CustomServerID', 'srvName', 'srvComment', 'IP', 'other Params') )
+    w.writerow( ('VIP', 'serviceType', 'port', 'VIPcomment', 'vServer', 'serviceGroup', 'port', 'CustomServerID', 'srvName', 'srvComment', 'IP', 'sslCertificates', 'other Params') )
 
     # loop through the servers and get those that are LB'ed
     for IP in servers.keys():
@@ -328,9 +378,30 @@ with open(f_lb,'w') as f:
             [VIP, serviceType, VIPport, VIPcomment]=VIPs[vServer]
         except(KeyError):
             VIP=serviceType=VIPport=VIPcomment="None"
+        try:
+            sslBindDefs = sslBinds[vServer]
+            # sslBindDefs is now an array of all the SSL certificates linked to this vServer
+            # Next, we need to resolve the links
+            sslLinkDefs = []
+            sslCertificates = []
+            # This means we loop through every sslBindDefs
+            for sslBindItem in sslBindDefs:
+                # sslBindItem is our first certificate, let's add it
+                sslCertificates.append(sslBindItem)
+                # But this might have links - we need to find this certificate in the links
+                if sslBindItem in sslLinks:
+                    tempitems = []
+                    tempitems = ssl_service_resolve_links(sslBindItem)
+                    sslCertificates = sslCertificates + tempitems
 
+        except(KeyError):
+            continue
 
-        w.writerow( (VIP, serviceType, VIPport, VIPcomment, vServer, serviceGroup, port, CustomServerID, srvName, srvComment, IP, srvOther) )
+        sslFileNames = []
+        for cert in sslCertificates:
+            sslFileNames.append(sslFiles[cert][0])
+
+        w.writerow( (VIP, serviceType, VIPport, VIPcomment, vServer, serviceGroup, port, CustomServerID, srvName, srvComment, IP, ";".join(sslFileNames),srvOther) )
 
 
 with open(f_gslb,'w') as f:
