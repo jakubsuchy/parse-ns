@@ -150,6 +150,9 @@ def readline(line):
     elif (line.lower().startswith('add service')):
         lb_service_parse(line)
 
+    elif (line.lower().startswith('add lb monitor')):
+        monitor_parse(line)
+
     elif (line.lower().startswith('add ssl certkey')):
         # This creates a key with a name, linking to a file
         ssl_service_certKey_parse(line)
@@ -170,6 +173,24 @@ Save lines that couldn't be identified
 """
 def undefined_parse(l):
     unParseable[l]=l
+
+"""
+add lb monitor prodnet.dom_dns DNS -query prodnet.dom -queryType Address -LRTM DISABLED -IPAddress 192.168.252.21 192.168.252.20
+add lb monitor http_Onewebsite_Stage_Web HTTP -respCode 80 200 403 -httpRequest "HEAD /css/logon/style.css" -customHeaders "host:cs.stage.companydomain.com\r\n" -LRTM DISABLED
+add lb monitor http_Onewebsite_Web HTTP -respCode 80 200 403 -httpRequest "HEAD /css/logon/style.css" -customHeaders "host:cs.companydomain.com\r\n" -LRTM DISABLED -downTime 100 MSEC
+add lb monitor http_Umbraco HTTP -respCode 200 -httpRequest "GET /umbraco/ping.aspx" -customHeaders "hostname:www.companydomain.com\r\n" -LRTM DISABLED -sslProfile ns_default_ssl_profile_backend
+add lb monitor http_testwebserver2 HTTP -respCode 80 200 403 -httpRequest "GET /iisstart.htm" -LRTM DISABLED -downTime 100 MSEC
+add lb monitor http_CSGWEB14 HTTP -respCode 200 -httpRequest "HEAD /live/fidportallive/login.aspx" -customHeaders "host:fid.companydomain.com\r\n" -LRTM DISABLED
+add lb monitor <monitorName> <monitorType> [<interval>]
+
+"""
+def monitor_parse(l):
+    monitorName=shlex.split(l)[3]
+    monitorType=shlex.split(l)[4]
+    if (monitorType != "TCP" && monitorType != "HTTP"):
+        # We don't understand this monitor yet, go to unparseable
+        undefined_parse(l)
+
 
 
 """
@@ -361,7 +382,7 @@ with open(f_lb,'w') as f:
     w=csv.writer(f)
 
     # write the header row
-    w.writerow( ('VIP', 'serviceType', 'port', 'VIPcomment', 'vServer', 'serviceGroup', 'port', 'CustomServerID', 'srvName', 'srvComment', 'IP', 'sslCertificates', 'other Params') )
+    w.writerow( ('VIP', 'serviceType', 'frontendPort', 'VIPcomment', 'vServer', 'serviceGroup', 'backendPort', 'CustomServerID', 'srvName', 'srvComment', 'IP', 'sslCertificates', 'other Params') )
 
     # loop through the servers and get those that are LB'ed
     for IP in servers.keys():
