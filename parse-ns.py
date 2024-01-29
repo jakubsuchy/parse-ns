@@ -187,9 +187,9 @@ add lb monitor <monitorName> <monitorType> [<interval>]
 def monitor_parse(l):
     monitorName=shlex.split(l)[3]
     monitorType=shlex.split(l)[4]
-    if (monitorType != "TCP" && monitorType != "HTTP"):
+    ##if (monitorType != "TCP" && monitorType != "HTTP"):
         # We don't understand this monitor yet, go to unparseable
-        undefined_parse(l)
+      #  undefined_parse(l)
 
 
 
